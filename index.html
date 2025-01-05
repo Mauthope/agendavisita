@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="login-container">
+        <h2>Login</h2>
+        <form id="loginForm">
+            <input type="email" id="email" placeholder="Email" required>
+            <input type="password" id="password" placeholder="Senha" required>
+            <button type="submit">Entrar</button>
+        </form>
+        <p id="error-message" style="color:red;"></p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="app.js"></script>
+  <script>
+
+const supabase = createClient('SUPABASE_URL', 'SUPABASE_ANON_KEY');
+
+document.getElementById('loginForm').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    
+    const { user, error } = await supabase.auth.signInWithPassword({ email, password });
+
+    if (error) {
+        document.getElementById('error-message').textContent = error.message;
+    } else {
+        const { data, error } = await supabase
+            .from('users')
+            .select('role')
+            .eq('id', user.id)
+            .single();
+
+        if (error) {
+            alert('Erro ao buscar dados do usuário');
+        } else {
+            localStorage.setItem('userRole', data.role);
+            window.location.href = 'dashboard.html'; // Redirecionar para o dashboard
+        }
+    }
+});
+
+    
+  </script>
+</body>
+</html>
