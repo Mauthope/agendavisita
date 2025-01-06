@@ -1,54 +1,191 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Calendário de Eventos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        #loginForm, #registerForm, #calendar, #eventForm {
+            display: none;
+        }
+        table {
+            border-collapse: collapse;
+        }
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+            cursor: pointer;
+        }
+        td:hover {
+            background-color: #f5f5f5;
+        }
+    </style>
 </head>
 <body>
-    <div class="login-container">
-        <h2>Login</h2>
-        <form id="loginForm">
-            <input type="email" id="email" placeholder="Email" required>
-            <input type="password" id="password" placeholder="Senha" required>
-            <button type="submit">Entrar</button>
-        </form>
-        <p id="error-message" style="color:red;"></p>
+    <div class="container">
+        <div id="loginForm">
+            <h2>Login</h2>
+            <input type="email" id="loginEmail" placeholder="Email" required><br><br>
+            <input type="password" id="loginPassword" placeholder="Senha" required><br><br>
+            <button onclick="login()">Entrar</button>
+            <button onclick="showRegisterForm()">Criar Conta</button>
+        </div>
+
+        <div id="registerForm">
+            <h2>Criar Conta</h2>
+            <input type="email" id="registerEmail" placeholder="Email" required><br><br>
+            <input type="password" id="registerPassword" placeholder="Senha (apenas números)" required><br><br>
+            <button onclick="register()">Registrar</button>
+            <button onclick="showLoginForm()">Voltar para Login</button>
+        </div>
+
+        <div id="calendar">
+            <h2>Calendário</h2>
+            <div id="calendarContainer"></div>
+            <button onclick="logout()">Sair</button>
+        </div>
+
+        <div id="eventForm">
+            <h2>Evento</h2>
+            <input type="text" id="eventName" placeholder="Nome do Evento" required><br><br>
+            <textarea id="eventDescription" placeholder="Descrição do Evento"></textarea><br><br>
+            <button onclick="saveEvent()">Salvar</button>
+            <button onclick="closeEventForm()">Fechar</button>
+        </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-    <script src="app.js"></script>
-  <script>
+    <script>
+        let currentUser = null;
+        let users = [
+            { email: 'admin@admin.com', password: '123456', isMaster: true }
+        ];
+        let events = {};
 
-const supabase = createClient('SUPABASE_URL', 'SUPABASE_ANON_KEY');
-
-document.getElementById('loginForm').addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    
-    const { user, error } = await supabase.auth.signInWithPassword({ email, password });
-
-    if (error) {
-        document.getElementById('error-message').textContent = error.message;
-    } else {
-        const { data, error } = await supabase
-            .from('users')
-            .select('role')
-            .eq('id', user.id)
-            .single();
-
-        if (error) {
-            alert('Erro ao buscar dados do usuário');
-        } else {
-            localStorage.setItem('userRole', data.role);
-            window.location.href = 'dashboard.html'; // Redirecionar para o dashboard
+        function showLoginForm() {
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('calendar').style.display = 'none';
+            document.getElementById('eventForm').style.display = 'none';
         }
-    }
-});
 
-    
-  </script>
+        function showRegisterForm() {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'block';
+        }
+
+        function showCalendar() {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('calendar').style.display = 'block';
+            generateCalendar();
+        }
+
+        function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const user = users.find(u => u.email === email && u.password === password);
+            if (user) {
+                currentUser = user;
+                showCalendar();
+            } else {
+                alert('Email ou senha incorretos');
+            }
+        }
+
+        function register() {
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            if (!/^\d+$/.test(password)) {
+                alert('A senha deve conter apenas números');
+                return;
+            }
+            if (users.some(u => u.email === email)) {
+                alert('Este email já está registrado');
+                return;
+            }
+            users.push({ email, password, isMaster: false });
+            alert('Conta criada com sucesso');
+            showLoginForm();
+        }
+
+        function logout() {
+            currentUser = null;
+            showLoginForm();
+        }
+
+        function generateCalendar() {
+            const now = new Date();
+            const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+            let calendarHTML = '<table><tr><th>Dom</th><th>Seg</th><th>Ter</th><th>Qua</th><th>Qui</th><th>Sex</th><th>Sáb</th></tr><tr>';
+
+            for (let i = 1; i <= daysInMonth; i++) {
+                const date = new Date(now.getFullYear(), now.getMonth(), i);
+                if (i === 1 && date.getDay() !== 0) {
+                    calendarHTML += `<td colspan="${date.getDay()}"></td>`;
+                }
+                const dateString = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${i.toString().padStart(2, '0')}`;
+                calendarHTML += `<td onclick="openEventForm('${dateString}')">${i}</td>`;
+                if (date.getDay() === 6 && i !== daysInMonth) {
+                    calendarHTML += '</tr><tr>';
+                }
+            }
+            calendarHTML += '</tr></table>';
+            document.getElementById('calendarContainer').innerHTML = calendarHTML;
+        }
+
+        function openEventForm(date) {
+            document.getElementById('calendar').style.display = 'none';
+            document.getElementById('eventForm').style.display = 'block';
+            document.getElementById('eventForm').setAttribute('data-date', date);
+            const event = events[date];
+            if (event) {
+                document.getElementById('eventName').value = event.name;
+                document.getElementById('eventDescription').value = event.description;
+            } else {
+                document.getElementById('eventName').value = '';
+                document.getElementById('eventDescription').value = '';
+            }
+        }
+
+        function closeEventForm() {
+            document.getElementById('calendar').style.display = 'block';
+            document.getElementById('eventForm').style.display = 'none';
+        }
+
+        function saveEvent() {
+            const date = document.getElementById('eventForm').getAttribute('data-date');
+            const name = document.getElementById('eventName').value;
+            const description = document.getElementById('eventDescription').value;
+            events[date] = { name, description };
+
+            // Gerar 11 entradas adicionais
+            const [year, month, day] = date.split('-').map(Number);
+            for (let i = 1; i <= 11; i++) {
+                const newDate = new Date(year, month - 1 + i, day);
+                const newDateString = `${newDate.getFullYear()}-${(newDate.getMonth() + 1).toString().padStart(2, '0')}-${newDate.getDate().toString().padStart(2, '0')}`;
+                events[newDateString] = { name, description };
+            }
+
+            alert('Evento salvo com sucesso');
+            closeEventForm();
+        }
+
+        showLoginForm();
+    </script>
 </body>
 </html>
