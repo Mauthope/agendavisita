@@ -3,189 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calendário de Eventos</title>
+    <title>Frigorífico Arvoredo</title>
     <style>
+        :root {
+            --primary-color: #006837;
+            --secondary-color: #8cc63f;
+            --background-color: #f0f7e9;
+            --text-color: #333;
+        }
+
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f0f0f0;
+            min-height: 100vh;
         }
+
         .container {
-            background-color: white;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        #loginForm, #registerForm, #calendar, #eventForm {
-            display: none;
-        }
-        table {
-            border-collapse: collapse;
-        }
-        td {
-            border: 1px solid #ddd;
-            padding: 8px;
             text-align: center;
-            cursor: pointer;
+            padding: 2rem;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            width: 90%;
         }
-        td:hover {
-            background-color: #f5f5f5;
+
+        .logo {
+            max-width: 200px;
+            margin-bottom: 1rem;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 2rem;
+        }
+
+        .button-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.3s ease, background-color 0.3s ease;
+            text-decoration: none;
+        }
+
+        .button:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-3px);
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .button {
+                width: 100%;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div id="loginForm">
-            <h2>Login</h2>
-            <input type="email" id="loginEmail" placeholder="Email" required><br><br>
-            <input type="password" id="loginPassword" placeholder="Senha" required><br><br>
-            <button onclick="login()">Entrar</button>
-            <button onclick="showRegisterForm()">Criar Conta</button>
-        </div>
-
-        <div id="registerForm">
-            <h2>Criar Conta</h2>
-            <input type="email" id="registerEmail" placeholder="Email" required><br><br>
-            <input type="password" id="registerPassword" placeholder="Senha (apenas números)" required><br><br>
-            <button onclick="register()">Registrar</button>
-            <button onclick="showLoginForm()">Voltar para Login</button>
-        </div>
-
-        <div id="calendar">
-            <h2>Calendário</h2>
-            <div id="calendarContainer"></div>
-            <button onclick="logout()">Sair</button>
-        </div>
-
-        <div id="eventForm">
-            <h2>Evento</h2>
-            <input type="text" id="eventName" placeholder="Nome do Evento" required><br><br>
-            <textarea id="eventDescription" placeholder="Descrição do Evento"></textarea><br><br>
-            <button onclick="saveEvent()">Salvar</button>
-            <button onclick="closeEventForm()">Fechar</button>
+        <img src="https://th.bing.com/th/id/R.1d28d53e94518beab66fcea9aa29ba6d?rik=omvtwv5JhZw7Xw&riu=http%3a%2f%2ffrigorificoarvoredo.com.br%2fblog%2fwp-content%2fthemes%2f2op%2fimages%2farvoredo-facebook.jpg&ehk=eRCT9QZH2qJskR3EC4yypW2NHrWR1hbo6zflcj6F804%3d&risl=&pid=ImgRaw&r=0" alt="Frigorífico Arvoredo Logo" class="logo">
+        <h1>Bem-vindo ao Frigorífico Arvoredo</h1>
+        <div class="button-container">
+            <a href="https://mauthope.github.io/Angelina/" target="_blank" rel="noopener noreferrer" class="button">Formulário de Visita</a>
+            <a href="https://www.facebook.com/frigorificoarvoredo" target="_blank" rel="noopener noreferrer" class="button">Planilha de visita</a>
+            <a href="https://www.instagram.com/frigorificoarvoredo" target="_blank" rel="noopener noreferrer" class="button">Extrair dados Excel</a>
+            <a href="https://www.linkedin.com/company/frigorificoarvoredo" target="_blank" rel="noopener noreferrer" class="button">Tabela de dados Extraídos </a>
+            <a href="mailto:contato@frigorificoarvoredo.com.br" target="_blank" rel="noopener noreferrer" class="button">Daschboard</a>
         </div>
     </div>
-
-    <script>
-        let currentUser = null;
-        let users = [
-            { email: 'admin@admin.com', password: '123456', isMaster: true }
-        ];
-        let events = {};
-
-        function showLoginForm() {
-            document.getElementById('loginForm').style.display = 'block';
-            document.getElementById('registerForm').style.display = 'none';
-            document.getElementById('calendar').style.display = 'none';
-            document.getElementById('eventForm').style.display = 'none';
-        }
-
-        function showRegisterForm() {
-            document.getElementById('loginForm').style.display = 'none';
-            document.getElementById('registerForm').style.display = 'block';
-        }
-
-        function showCalendar() {
-            document.getElementById('loginForm').style.display = 'none';
-            document.getElementById('calendar').style.display = 'block';
-            generateCalendar();
-        }
-
-        function login() {
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            const user = users.find(u => u.email === email && u.password === password);
-            if (user) {
-                currentUser = user;
-                showCalendar();
-            } else {
-                alert('Email ou senha incorretos');
-            }
-        }
-
-        function register() {
-            const email = document.getElementById('registerEmail').value;
-            const password = document.getElementById('registerPassword').value;
-            if (!/^\d+$/.test(password)) {
-                alert('A senha deve conter apenas números');
-                return;
-            }
-            if (users.some(u => u.email === email)) {
-                alert('Este email já está registrado');
-                return;
-            }
-            users.push({ email, password, isMaster: false });
-            alert('Conta criada com sucesso');
-            showLoginForm();
-        }
-
-        function logout() {
-            currentUser = null;
-            showLoginForm();
-        }
-
-        function generateCalendar() {
-            const now = new Date();
-            const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-            let calendarHTML = '<table><tr><th>Dom</th><th>Seg</th><th>Ter</th><th>Qua</th><th>Qui</th><th>Sex</th><th>Sáb</th></tr><tr>';
-
-            for (let i = 1; i <= daysInMonth; i++) {
-                const date = new Date(now.getFullYear(), now.getMonth(), i);
-                if (i === 1 && date.getDay() !== 0) {
-                    calendarHTML += `<td colspan="${date.getDay()}"></td>`;
-                }
-                const dateString = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${i.toString().padStart(2, '0')}`;
-                calendarHTML += `<td onclick="openEventForm('${dateString}')">${i}</td>`;
-                if (date.getDay() === 6 && i !== daysInMonth) {
-                    calendarHTML += '</tr><tr>';
-                }
-            }
-            calendarHTML += '</tr></table>';
-            document.getElementById('calendarContainer').innerHTML = calendarHTML;
-        }
-
-        function openEventForm(date) {
-            document.getElementById('calendar').style.display = 'none';
-            document.getElementById('eventForm').style.display = 'block';
-            document.getElementById('eventForm').setAttribute('data-date', date);
-            const event = events[date];
-            if (event) {
-                document.getElementById('eventName').value = event.name;
-                document.getElementById('eventDescription').value = event.description;
-            } else {
-                document.getElementById('eventName').value = '';
-                document.getElementById('eventDescription').value = '';
-            }
-        }
-
-        function closeEventForm() {
-            document.getElementById('calendar').style.display = 'block';
-            document.getElementById('eventForm').style.display = 'none';
-        }
-
-        function saveEvent() {
-            const date = document.getElementById('eventForm').getAttribute('data-date');
-            const name = document.getElementById('eventName').value;
-            const description = document.getElementById('eventDescription').value;
-            events[date] = { name, description };
-
-            // Gerar 11 entradas adicionais
-            const [year, month, day] = date.split('-').map(Number);
-            for (let i = 1; i <= 11; i++) {
-                const newDate = new Date(year, month - 1 + i, day);
-                const newDateString = `${newDate.getFullYear()}-${(newDate.getMonth() + 1).toString().padStart(2, '0')}-${newDate.getDate().toString().padStart(2, '0')}`;
-                events[newDateString] = { name, description };
-            }
-
-            alert('Evento salvo com sucesso');
-            closeEventForm();
-        }
-
-        showLoginForm();
-    </script>
 </body>
 </html>
+
